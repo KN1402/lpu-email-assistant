@@ -1,0 +1,31 @@
+text,intent
+write an email to my teacher,generate_email
+help me write an email,generate_email
+create a professional email,generate_email
+I want to write an email,generate_email
+draft an email for me,generate_email
+write a formal email,generate_email
+make this email professional,improve_email
+improve my email,improve_email
+correct my email,improve_email
+make my email better,improve_email
+rewrite this email professionally,improve_email
+make this message formal,improve_email
+I want to reply to this email,reply_email
+help me reply to an email,reply_email
+write a reply for this email,reply_email
+how should I respond to this email,reply_email
+create a professional reply,reply_email
+help me respond professionally,reply_email
+I need a leave email,leave_request
+write a leave application,leave_request
+write an email asking for leave,leave_request
+I want to request leave,leave_request
+create a leave request email,leave_request
+write a leave email to my teacher,leave_request
+I need more time for my assignment,assignment_extension
+write an assignment extension email,assignment_extension
+ask my teacher for assignment extension,assignment_extension
+write an email requesting more time,assignment_extension
+I want an extension for my assignment,assignment_extension
+request extra time for submission,assignment_extension
