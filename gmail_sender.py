@@ -1,5 +1,9 @@
+
 import os
+import json
 import base64
+
+import streamlit as st
 
 from email.message import EmailMessage
 
@@ -16,32 +20,65 @@ def get_gmail_service():
 
     creds = None
 
-    # Check if we already have a saved login
+    # -----------------------------------------
+    # 1. LOCAL: use token.json if it exists
+    # -----------------------------------------
     if os.path.exists("token.json"):
+
         creds = Credentials.from_authorized_user_file(
             "token.json",
             SCOPES
         )
 
-    # If login is missing or expired
+    # -----------------------------------------
+    # 2. STREAMLIT CLOUD: use token from Secrets
+    # -----------------------------------------
+    elif "GMAIL_TOKEN_JSON" in st.secrets:
+
+        token_data = json.loads(
+            st.secrets["GMAIL_TOKEN_JSON"]
+        )
+
+        creds = Credentials.from_authorized_user_info(
+            token_data,
+            SCOPES
+        )
+
+    # -----------------------------------------
+    # 3. Refresh / create credentials
+    # -----------------------------------------
     if not creds or not creds.valid:
 
         if creds and creds.expired and creds.refresh_token:
+
             creds.refresh(Request())
 
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                "credentials.json",
-                SCOPES
-            )
 
-            creds = flow.run_local_server(port=0)
+            # LOCAL ONLY
+            if os.path.exists("credentials.json"):
 
-        # Save login information
-        with open("token.json", "w") as token:
-            token.write(creds.to_json())
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    "credentials.json",
+                    SCOPES
+                )
 
-    # Create Gmail API service
+                creds = flow.run_local_server(port=0)
+
+            else:
+                raise Exception(
+                    "Gmail credentials are not configured on Streamlit Cloud."
+                )
+
+        # Save token locally only
+        if os.path.exists("credentials.json"):
+
+            with open("token.json", "w") as token:
+                token.write(creds.to_json())
+
+    # -----------------------------------------
+    # 4. Create Gmail API service
+    # -----------------------------------------
     service = build(
         "gmail",
         "v1",
@@ -62,7 +99,6 @@ def send_email(to_email, subject, body):
     message["To"] = to_email
     message["Subject"] = subject
 
-    # Encode email for Gmail API
     encoded_message = base64.urlsafe_b64encode(
         message.as_bytes()
     ).decode()
@@ -71,7 +107,6 @@ def send_email(to_email, subject, body):
         "raw": encoded_message
     }
 
-    # Send email
     send_message = service.users().messages().send(
         userId="me",
         body=create_message
